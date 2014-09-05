@@ -48,6 +48,7 @@ func connect() error {
 		return e
 	}
 
+	logger.Printf("checking online status")
 	if ok, e := online(); e == nil && ok {
 		logger.Printf(yellow("you are already connected!"))
 		return nil
