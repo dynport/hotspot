@@ -22,10 +22,7 @@ func main() {
 }
 
 func disconnect() error {
-	b, e := newBrowser()
-	if e != nil {
-		return e
-	}
+	b := browser()
 	ok, e := online()
 	if e != nil {
 		return e
@@ -42,21 +39,25 @@ func disconnect() error {
 	return nil
 }
 
-func connect() error {
-	b, e := newBrowser()
+func available() bool {
+	b := browser()
+	e := b.Visit(railControllerUrl)
 	if e != nil {
-		return e
+		return false
 	}
+	return true
+}
 
+func connect() error {
+	b := browser()
 	logger.Printf("checking online status")
 	if ok, e := online(); e == nil && ok {
 		logger.Printf(yellow("you are already connected!"))
 		return nil
 	}
 	logger.Printf("checking for availablity")
-	e = b.Visit(railControllerUrl)
-	if e != nil {
-		return e
+	if !available() {
+		return fmt.Errorf("hotspot seems to be not available")
 	}
 	body, e := b.Body()
 	if e != nil {
@@ -121,7 +122,11 @@ func status() error {
 		logger.Printf(green("you are online!"))
 		return nil
 	} else {
-		logger.Printf(red("you are offline"))
+		s := "you are offline"
+		if !available() {
+			s += " (hotspot not available)"
+		}
+		logger.Printf(red(s))
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dynport/dgtk/browser"
+	br "github.com/dynport/dgtk/browser"
 	"github.com/dynport/gocli"
 )
 
@@ -29,13 +29,18 @@ func online() (bool, error) {
 	return rsp.Request.URL.Host == checkHost, nil
 }
 
-func newBrowser() (*browser.Browser, error) {
-	b, e := browser.New()
-	if e != nil {
-		return nil, e
-	}
-	return b, nil
+var cachedBrowser *br.Browser
 
+func browser() *br.Browser {
+	if cachedBrowser == nil {
+		b, e := br.New()
+		if e != nil {
+			logger.Fatal("unable to initialize browser: %q", e)
+		}
+		cachedBrowser = b
+		return cachedBrowser
+	}
+	return cachedBrowser
 }
 
 func getEnv(key string) (string, error) {
